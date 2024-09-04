@@ -1,9 +1,3 @@
-Nombre
-
-
-
-
-Licencia
 # Gestión de Tareas (Nombre)
 Proyecto de gestión de tareas para la asignatura de pruebas de software. (Descripción)
 
