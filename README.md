@@ -1,12 +1,22 @@
-# Gestión de Tareas
-Proyecto de gestión de tareas para la asignatura de pruebas de software.
+Nombre
 
-## Instalación TinyDB
+
+
+
+Licencia
+# Gestión de Tareas (Nombre)
+Proyecto de gestión de tareas para la asignatura de pruebas de software. (Descripción)
+
+## Instalación TinyDB (Instalación)
 ```
 pip install click tinydb
 ```
 
-## Ejecutar
+## Ejecutar (Cómo usar)
 ```
 python .\task_manager.py
 ```
+
+## Cómo contribuir
+
+## Licencia?
