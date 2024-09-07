@@ -1,6 +1,8 @@
 import click
 from tinydb import TinyDB, Query
 from getpass import getpass
+import os
+import re
 
 db = TinyDB('db.json')
 Task = Query()
@@ -15,6 +17,7 @@ def authenticate():
         exit()
 
 def add_task():
+    os.system('cls')
     title = input("Titulo de la tarea: ")
     description = input("Descripcion de la tarea: ")
     due_date = input("Fecha de vencimiento (yyyy-mm-dd): ")
@@ -29,15 +32,23 @@ def add_task():
     print(f"Tarea '{title}' añadida.\n")
 
 def show_tasks():
+    os.system('cls')
     tasks = db.all()
     if tasks:
         for task in tasks:
             print(f"{task['title']} - {task['status']} - {task['due_date']} - {task['tag']}")
     else:
         print("No hay tareas registradas.\n")
+    pattern_out = re.compile(r"^(s|si|sí)$", re.IGNORECASE)
+    while True:
+        choice = input("Volver a menú (S/N): ")
+        if pattern_out.match(choice):
+            os.system('cls')
+            main_menu()
 
 
 def update_task_status():
+    os.system('cls')
     title = input("Ingrese el título de la tarea a actualizar: ")
     new_status = input("Nuevo estado (Pendiente, En progreso, Completada): ")
     if new_status in ['Pendiente', 'En progreso', 'Completada']:
