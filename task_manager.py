@@ -7,6 +7,14 @@ import re
 db = TinyDB('db.json')
 Task = Query()
 
+def go_back_to_menu():
+    pattern_out = re.compile(r"^(s|si|sí)$", re.IGNORECASE)
+    while True:
+        choice = input("Volver a menú (S/N): ")
+        if pattern_out.match(choice):
+            os.system('cls')
+            main_menu()
+
 def authenticate():
     user = input("Usuario: ")
     password = getpass("Contraseña: ")
@@ -30,6 +38,7 @@ def add_task():
         'status': 'Pendiente'
     })
     print(f"Tarea '{title}' añadida.\n")
+    go_back_to_menu()
 
 def show_tasks():
     os.system('cls')
@@ -39,13 +48,7 @@ def show_tasks():
             print(f"{task['title']} - {task['status']} - {task['due_date']} - {task['tag']}")
     else:
         print("No hay tareas registradas.\n")
-    pattern_out = re.compile(r"^(s|si|sí)$", re.IGNORECASE)
-    while True:
-        choice = input("Volver a menú (S/N): ")
-        if pattern_out.match(choice):
-            os.system('cls')
-            main_menu()
-
+    go_back_to_menu()
 
 def update_task_status():
     os.system('cls')
@@ -59,6 +62,7 @@ def update_task_status():
             print("Tarea no encontrada.\n")
     else:
         print("Estado no valido. Los estados válidos son 'Pendiente', 'En progreso', 'Completada'.\n")
+    go_back_to_menu()
 
 
 def main_menu():
