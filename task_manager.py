@@ -7,18 +7,21 @@ import re
 db = TinyDB('db.json')
 Task = Query()
 User = Query()
+users_table = db.table('users')
 
 def register():
     User = Query()
     username = input("Introduce tu nombre de usuario: ")
-    password = input("Introduce tu contraseña: ")
+    password = getpass("Introduce tu contraseña: ")
     md5_password = hashlib.md5(password.encode()).hexdigest()
 
-    if db.search(User.nombre == username):
+    # Buscar si el usuario ya existe en la tabla de usuarios
+    if users_table.search(User.nombre == username):
         print("El usuario ya existe. Intenta con otro nombre de usuario.")
         return
-        
-    db.insert({'nombre': username, 'contraseña': md5_password})
+
+    # Insertar el nuevo usuario en la tabla de usuarios
+    users_table.insert({'nombre': username, 'password': md5_password})
     print("Usuario registrado exitosamente!")
 
 def go_back_to_menu():
@@ -30,7 +33,6 @@ def go_back_to_menu():
             main_menu()
 
 def authenticate():
-    users_table = db.table('users')
     user = input("Usuario: ")
     password = getpass("Contraseña: ")
     md5_password = hashlib.md5(password.encode()).hexdigest()
@@ -82,8 +84,7 @@ def update_task_status():
     go_back_to_menu()
 
 def main_menu():
-    while True:    
-        
+    while True:     
         print("1. Añadir tarea")
         print("2. Mostrar tareas")
         print("3. Actualizar estado de tarea")
@@ -92,7 +93,7 @@ def main_menu():
         if choice == '1':
             add_task()
         elif choice == '2':
-            show_tasks()
+            register()
         elif choice == '3':
             update_task_status()
         elif choice == '4':
@@ -101,7 +102,25 @@ def main_menu():
         else:
             print("Opcion no válida. Intente de nuevo.\n")
 
+def user_decision():
+    while True:     
+        print("1. Iniciar Sesión")
+        print("2. Registrarse")
+        print("3. Salir")
+        choice = input("Seleccione una opcion: ")
+        if choice == '1':
+            authenticate()
+            main_menu()
+        elif choice == '2':
+            register()
+            main_menu()
+        elif choice == '3':
+            print("Saliendo del sistema.")
+            break
+        else:
+            print("Opcion no válida. Intente de nuevo.\n")
+            main_menu()
+
 if __name__ == '__main__':
     print("Bienvenido al Sistema de Gestion de Tareas")
-    authenticate()
-    main_menu()
+    user_decision()
