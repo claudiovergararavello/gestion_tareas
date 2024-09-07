@@ -1,4 +1,4 @@
-import click
+import hashlib
 from tinydb import TinyDB, Query
 from getpass import getpass
 import os
@@ -6,6 +6,20 @@ import re
 
 db = TinyDB('db.json')
 Task = Query()
+User = Query()
+
+def register():
+    User = Query()
+    username = input("Introduce tu nombre de usuario: ")
+    password = input("Introduce tu contraseña: ")
+    md5_password = hashlib.md5(password.encode()).hexdigest()
+
+    if db.search(User.nombre == username):
+        print("El usuario ya existe. Intenta con otro nombre de usuario.")
+        return
+        
+    db.insert({'nombre': username, 'contraseña': md5_password})
+    print("Usuario registrado exitosamente!")
 
 def go_back_to_menu():
     pattern_out = re.compile(r"^(s|si|sí)$", re.IGNORECASE)
@@ -16,9 +30,12 @@ def go_back_to_menu():
             main_menu()
 
 def authenticate():
+    users_table = db.table('users')
     user = input("Usuario: ")
     password = getpass("Contraseña: ")
-    if user == "admin" and password == "password":
+    md5_password = hashlib.md5(password.encode()).hexdigest()
+    result  = users_table.search((User.nombre == user) & (User.password == md5_password))
+    if result:
         print("Acceso concedido\n")
     else:
         print("Acceso denegado")
@@ -63,7 +80,6 @@ def update_task_status():
     else:
         print("Estado no valido. Los estados válidos son 'Pendiente', 'En progreso', 'Completada'.\n")
     go_back_to_menu()
-
 
 def main_menu():
     while True:    
