@@ -66,7 +66,8 @@ def update_task_status():
 
 
 def main_menu():
-    while True:
+    while True:    
+        
         print("1. Añadir tarea")
         print("2. Mostrar tareas")
         print("3. Actualizar estado de tarea")
