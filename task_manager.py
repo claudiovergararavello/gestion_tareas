@@ -64,6 +64,35 @@ def update_task_status():
         print("Estado no valido. Los estados válidos son 'Pendiente', 'En progreso', 'Completada'.\n")
     go_back_to_menu()
 
+def delete_task():
+    while True:
+        tasks = db.all()
+        os.system('cls')
+        if tasks:
+            for task in tasks:
+                print(f"{task['title']} - {task['status']} - {task['due_date']} - {task['tag']}")
+        
+            choice = input("Ingrese título de tarea a eliminar:")
+            success = db.remove(Task.title == choice)
+            if success:
+                pattern_out = re.compile(r"^(s|si|sí)$", re.IGNORECASE)
+                os.system('cls')
+                print("Tarea Eliminada")
+                choice = input("Volver a menú (S/N): ")
+                if pattern_out.match(choice):
+                    os.system('cls')
+                    main_menu()
+                
+            else:
+                pattern_out = re.compile(r"^(s|si|sí)$", re.IGNORECASE)
+                print("No se ha encontrado la tarea")
+                choice = input("Volver a menú (S/N): ")
+                if pattern_out.match(choice):
+                    os.system('cls')
+                    main_menu()
+        
+        else:
+            print("No hay tareas registradas.\n")
 
 def main_menu():
     while True:    
@@ -71,7 +100,8 @@ def main_menu():
         print("1. Añadir tarea")
         print("2. Mostrar tareas")
         print("3. Actualizar estado de tarea")
-        print("4. Salir")
+        print("4. Borrar tarea")
+        print("5. Salir")
         choice = input("Seleccione una opcion: ")
         if choice == '1':
             add_task()
@@ -80,6 +110,8 @@ def main_menu():
         elif choice == '3':
             update_task_status()
         elif choice == '4':
+            delete_task()
+        elif choice == '5':
             print("Saliendo del sistema.")
             break
         else:
