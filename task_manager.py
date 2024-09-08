@@ -100,7 +100,8 @@ def filter():
         print("1. Fecha de vencimiento")
         print("2. Etiqueta")
         print("3. Estado")
-        print("4. Volver al menú")
+        print("4. Título")
+        print("5. Volver al menú")
 
         choice = input("Seleccione una opcion: ")
         if choice == '1':
@@ -110,6 +111,8 @@ def filter():
         elif choice == '3':
             filter_by_state()
         elif choice == '4':
+            filter_by_title()
+        elif choice == '5':
             break
         else:
             print("Opcion no válida. Intente de nuevo.\n")
@@ -181,6 +184,22 @@ def filter_by_state():
             print(f"{task['title']} - {task['status']} - {task['due_date']} - {task['tag']}")
     else:
         print("No se encontraron tareas con ese estado.")
+    input("Presione enter para continuar.")
+
+def filter_by_title():
+    os.system('cls')
+    title = input("Ingrese el título de la tarea: ")
+
+    result = tasks_table.search(Task.title.matches(title, flags=re.IGNORECASE))
+    sorted_tasks = sorted(result, key=lambda x: datetime.strptime(x['due_date'], "%Y-%m-%d"))
+
+    os.system('cls')
+    if result:
+        print("Tareas encontradas:")
+        for task in sorted_tasks:
+            print(f"{task['title']} - {task['status']} - {task['due_date']} - {task['tag']}")
+    else:
+        print("No se encontraron tareas con ese título.")
     input("Presione enter para continuar.")
 
 def update_overdue_tasks():
