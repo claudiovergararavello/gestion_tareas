@@ -29,12 +29,17 @@ def add_task():
     title = input("Titulo de la tarea: ")
     description = input("Descripcion de la tarea: ")
     due_date = input("Fecha de vencimiento (yyyy-mm-dd): ")
-    tag = input("Etiqueta: ")
+    etiquetas = ['dummy','urgente', 'trabajo', 'personal', 'otros']
+    print("1. urgente")
+    print("2. trabajo")
+    print("3. personal")
+    print("4. otros")
+    tag = input("Seleccione etiqueta: ")
     db.insert({
         'title': title,
         'description': description,
         'due_date': due_date,
-        'tag': tag,
+        'tag': etiquetas[int(tag)],
         'status': 'Pendiente'
     })
     print(f"Tarea '{title}' añadida.\n")
