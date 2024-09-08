@@ -8,8 +8,8 @@ from datetime import datetime
 db = TinyDB('db.json')
 Task = Query()
 User = Query()
-users_table = db.table('user')
-tasks_table = db.table('task')
+users_table = db.table('users')
+tasks_table = db.table('tasks')
 
 def register():
     os.system('cls')
