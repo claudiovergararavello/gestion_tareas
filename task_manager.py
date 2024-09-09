@@ -50,14 +50,21 @@ def authenticate():
 
 def add_task():
     os.system('cls')
+    date_pattern = re.compile(r"^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$")
+    
     title = input("Titulo de la tarea: ")
     description = input("Descripcion de la tarea: ")
+
     due_date = input("Fecha de vencimiento (yyyy-mm-dd): ")
-    etiquetas = ['dummy','urgente', 'trabajo', 'personal', 'otros']
-    print("1. urgente")
-    print("2. trabajo")
-    print("3. personal")
-    print("4. otros")
+    while not date_pattern.match(due_date):
+        print("Formato de fecha inválido. Inténtalo de nuevo.")
+        due_date = input("Fecha de vencimiento (yyyy-mm-dd): ")
+
+    etiquetas = ['dummy','Urgente', 'Trabajo', 'Personal', 'Otros']
+    print("1. Urgente")
+    print("2. Trabajo")
+    print("3. Personal")
+    print("4. Otros")
     tag = input("Seleccione etiqueta: ")
     tasks_table.insert({
         'username': username,
@@ -84,9 +91,15 @@ def update_task_status():
     os.system('cls')
     statuses = ["Pendiente", "En progreso", "Completada"]
     
+    tasks = tasks_table.search( Task.username == username )
+    if tasks:
+        for task in tasks:
+            print(f"{task['title']} - {task['status']} - {task['due_date']} - {task['tag']}")
+
     title = input("Ingrese el título de la tarea a actualizar: ")
     result = tasks_table.search( (Task.title == title) & (Task.username == username) )
     if not result:
+        os.system('cls')
         print("No se ha encontrado una tarea con este título")
         input("Presione enter para continuar.")
         return
@@ -95,7 +108,10 @@ def update_task_status():
         os.system('cls')
         for (i, item) in enumerate(statuses, start=1):
             print(str(i)+".", item)
-        choice = int(input("Seleccione el nuevo estado: "))
+        try:
+            choice = int(input("Seleccione el nuevo estado: "))
+        except:
+            continue
         if choice in list( range( 1, len(statuses) + 1) ):
             break
         os.system('cls')
@@ -209,9 +225,25 @@ def filter_by_date():
 
 def filter_by_tag():
     os.system('cls')
-    tag = input("Ingrese una etiqueta: ")
 
-    result = tasks_table.search( (Task.tag == tag) & (Task.username == username) )
+    etiquetas = ['Urgente', 'Trabajo', 'Personal', 'Otros']
+
+    while True:
+        os.system('cls')
+        for (i, item) in enumerate(etiquetas, start=1):
+            print(str(i)+".", item)
+        try:
+            choice = int(input("Seleccione una etiqueta: "))
+        except:
+            continue
+        if choice in list( range( 1, len(etiquetas) + 1) ):
+            break
+        os.system('cls')
+        print("Opción inválida.")
+        input("Presione enter para continuar.")
+
+
+    result = tasks_table.search( (Task.tag == etiquetas[choice-1]) & (Task.username == username) )
     sorted_tasks = sorted(result, key=lambda x: datetime.strptime(x['due_date'], "%Y-%m-%d"))
 
     os.system('cls')
@@ -226,10 +258,20 @@ def filter_by_tag():
 def filter_by_state():
     os.system('cls')
     statuses = ["Pendiente", "En progreso", "Completada", "Atrasada"]
-    
-    for (i, item) in enumerate(statuses, start=1):
-        print(str(i)+".", item)
-    choice = int(input("Seleccione una opcion: "))
+
+    while True:
+        os.system('cls')
+        for (i, item) in enumerate(statuses, start=1):
+            print(str(i)+".", item)
+        try:
+            choice = int(input("Seleccione un estado: "))
+        except:
+            continue
+        if choice in list( range( 1, len(statuses) + 1) ):
+            break
+        os.system('cls')
+        print("Opción inválida.")
+        input("Presione enter para continuar.")
 
     result = tasks_table.search( (Task.status == statuses[choice-1]) & (Task.username == username) )
     sorted_tasks = sorted(result, key=lambda x: datetime.strptime(x['due_date'], "%Y-%m-%d"))
@@ -295,6 +337,7 @@ def main_menu():
             exit()
         else:
             print("Opcion no válida. Intente de nuevo.\n")
+            input("Presione enter para continuar.")
 
 def user_decision():
     while True:
