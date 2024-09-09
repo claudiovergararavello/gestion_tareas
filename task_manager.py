@@ -33,6 +33,7 @@ def register():
     input("Presione enter para continuar.")
 
 def authenticate():
+    global username
     os.system('cls')
     print("Inicio de sesión")
     user = input("Usuario: ")
@@ -40,6 +41,7 @@ def authenticate():
     md5_password = hashlib.md5(password.encode()).hexdigest()
     result  = users_table.search((User.nombre == user) & (User.password == md5_password))
     if result:
+        username = user
         print("Acceso concedido\n")
         input("Presione enter para continuar.")
     else:
@@ -58,6 +60,7 @@ def add_task():
     print("4. otros")
     tag = input("Seleccione etiqueta: ")
     tasks_table.insert({
+        'username': username,
         'title': title,
         'description': description,
         'due_date': due_date,
@@ -69,7 +72,7 @@ def add_task():
 
 def show_tasks():
     os.system('cls')
-    tasks = tasks_table.all()
+    tasks = tasks_table.search(Task.username == username)
     if tasks:
         for task in tasks:
             print(f"{task['title']} - {task['status']} - {task['due_date']} - {task['tag']}")
@@ -82,7 +85,7 @@ def update_task_status():
     statuses = ["Pendiente", "En progreso", "Completada"]
     
     title = input("Ingrese el título de la tarea a actualizar: ")
-    result = tasks_table.search(Task.title == title)
+    result = tasks_table.search( (Task.title == title) & (Task.username == username) )
     if not result:
         print("No se ha encontrado una tarea con este título")
         input("Presione enter para continuar.")
@@ -99,7 +102,7 @@ def update_task_status():
         print("Opción inválida.")
         input("Presione enter para continuar.")
 
-    updated = tasks_table.update({'status': statuses[choice-1]}, Task.title == title)
+    updated = tasks_table.update({'status': statuses[choice-1]}, (Task.title == title) & (Task.username == username))
     if updated:
         print(f"Estado de '{title}' actualizado a {statuses[choice-1]}.\n")
     else:
@@ -110,7 +113,7 @@ def delete_task():
     pattern_out = re.compile(r"^(s|si|sí)$", re.IGNORECASE)
     while True:
         # Obtener todos los elementos de la tabla
-        tasks = tasks_table.all()
+        tasks = tasks_table.search( Task.username == username )
         os.system('cls')
         if tasks:
             t = []
@@ -122,15 +125,15 @@ def delete_task():
             if (choice in t):
                 erase = input("Eliminar tarea permanentemente? (S/N): ")
                 if pattern_out.match(erase):
-                    tasks_table.remove(Task.title == choice)
+                    tasks_table.remove( (Task.title == choice) & (Task.username == username) )
                     os.system('cls')
                     print('Tarea Eliminada')
                     input("Presione enter para continuar.")
                     return
                 else:
-                    task_to_move = tasks_table.get(Task.title == choice)
+                    task_to_move = tasks_table.get( (Task.title == choice) & (Task.username == username) )
                     archived_tasks.insert(task_to_move)
-                    tasks_table.remove(Task.title == choice)
+                    tasks_table.remove( (Task.title == choice) & (Task.username == username) )
                     os.system('cls')
                     print('Tarea guardada en papelera')
                     input("Presione enter para continuar.")
@@ -192,7 +195,7 @@ def filter_by_date():
         date_obj = datetime.strptime(date, "%Y-%m-%d")
         return from_date_obj <= date_obj <= to_date_obj
 
-    result = tasks_table.search(Task.due_date.test(search_by_date))
+    result = tasks_table.search( (Task.due_date.test(search_by_date)) & (Task.username == username) )
     sorted_tasks = sorted(result, key=lambda x: datetime.strptime(x['due_date'], "%Y-%m-%d"))
 
     os.system('cls')
@@ -208,7 +211,7 @@ def filter_by_tag():
     os.system('cls')
     tag = input("Ingrese una etiqueta: ")
 
-    result = tasks_table.search(Task.tag == tag)
+    result = tasks_table.search( (Task.tag == tag) & (Task.username == username) )
     sorted_tasks = sorted(result, key=lambda x: datetime.strptime(x['due_date'], "%Y-%m-%d"))
 
     os.system('cls')
@@ -228,7 +231,7 @@ def filter_by_state():
         print(str(i)+".", item)
     choice = int(input("Seleccione una opcion: "))
 
-    result = tasks_table.search(Task.status == statuses[choice-1])
+    result = tasks_table.search( (Task.status == statuses[choice-1]) & (Task.username == username) )
     sorted_tasks = sorted(result, key=lambda x: datetime.strptime(x['due_date'], "%Y-%m-%d"))
 
     os.system('cls')
@@ -244,7 +247,7 @@ def filter_by_title():
     os.system('cls')
     title = input("Ingrese el título de la tarea: ")
 
-    result = tasks_table.search(Task.title.matches(title, flags=re.IGNORECASE))
+    result = tasks_table.search( (Task.title.matches(title, flags=re.IGNORECASE)) & (Task.username == username) )
     sorted_tasks = sorted(result, key=lambda x: datetime.strptime(x['due_date'], "%Y-%m-%d"))
 
     os.system('cls')
