@@ -95,6 +95,10 @@ def update_task_status():
     if tasks:
         for task in tasks:
             print(f"{task['title']} - {task['status']} - {task['due_date']} - {task['tag']}")
+    else:
+        print("No hay tareas registradas.\n")
+        input("Presione enter para continuar.")
+        return
 
     title = input("Ingrese el título de la tarea a actualizar: ")
     result = tasks_table.search( (Task.title == title) & (Task.username == username) )
