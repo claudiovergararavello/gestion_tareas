@@ -10,6 +10,7 @@ Task = Query()
 User = Query()
 users_table = db.table('users')
 tasks_table = db.table('tasks')
+archived_tasks = db.table('archived_tasks')
 
 def register():
     os.system('cls')
@@ -58,12 +59,17 @@ def add_task():
     title = input("Titulo de la tarea: ")
     description = input("Descripcion de la tarea: ")
     due_date = input("Fecha de vencimiento (yyyy-mm-dd): ")
-    tag = input("Etiqueta: ")
+    etiquetas = ['dummy','urgente', 'trabajo', 'personal', 'otros']
+    print("1. urgente")
+    print("2. trabajo")
+    print("3. personal")
+    print("4. otros")
+    tag = input("Seleccione etiqueta: ")
     tasks_table.insert({
         'title': title,
         'description': description,
         'due_date': due_date,
-        'tag': tag,
+        'tag': etiquetas[int(tag)],
         'status': 'Pendiente'
     })
     print(f"Tarea '{title}' añadida.\n")
@@ -92,6 +98,43 @@ def update_task_status():
     else:
         print("Estado no valido. Los estados válidos son 'Pendiente', 'En progreso', 'Completada'.\n")
     go_back_to_menu()
+
+def delete_task():
+    pattern_out = re.compile(r"^(s|si|sí)$", re.IGNORECASE)
+    while True:
+        # Obtener todos los elementos de la tabla
+        tasks = tasks_table.all()
+        os.system('cls')
+        if tasks:
+            t = []
+            for task in tasks:
+                print(f"{task['title']} - {task['status']} - {task['due_date']} - {task['tag']}")
+                t.append(task['title'])
+
+            choice = input("Ingrese título de tarea a eliminar:")
+            if (choice in t):
+                erase = input("Eliminar tarea permanentemente? (S/N): ")
+                if pattern_out.match(erase):
+                    tasks_table.remove(Task.title == choice)
+                    os.system('cls')
+                    print('Tarea Eliminada')
+                    go_back_to_menu()
+                else:
+                    task_to_move = tasks_table.get(Task.title == choice)
+                    archived_tasks.insert(task_to_move)
+                    tasks_table.remove(Task.title == choice)
+                    print('Tarea guardada en papelera')
+                    go_back_to_menu()
+            else:
+                print("No se ha encontrado la tarea")
+                choice = input("Volver a menú (S/N): ")
+                if pattern_out.match(choice):
+                    os.system('cls')
+                    main_menu()
+        
+        else:
+            print("No hay tareas registradas.\n")
+            go_back_to_menu()
 
 def filter():
     while True:
@@ -220,7 +263,8 @@ def main_menu():
         print("2. Mostrar tareas")
         print("3. Actualizar estado de tarea")
         print("4. Buscar tareas")
-        print("5. Salir")
+        print("5. Borrar tareas")
+        print("6. Salir")
         choice = input("Seleccione una opcion: ")
         if choice == '1':
             add_task()
@@ -231,6 +275,8 @@ def main_menu():
         elif choice == '4':
             filter()
         elif choice == '5':
+            delete_task()
+        elif choice == '6':
             print("Saliendo del sistema.")
             exit()
         else:
