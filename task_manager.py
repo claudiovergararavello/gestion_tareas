@@ -32,14 +32,6 @@ def register():
     print("Usuario registrado exitosamente!")
     input("Presione enter para continuar.")
 
-def go_back_to_menu():
-    pattern_out = re.compile(r"^(s|si|sí)$", re.IGNORECASE)
-    while True:
-        choice = input("Volver a menú (S/N): ")
-        if pattern_out.match(choice):
-            os.system('cls')
-            main_menu()
-
 def authenticate():
     os.system('cls')
     print("Inicio de sesión")
@@ -73,7 +65,7 @@ def add_task():
         'status': 'Pendiente'
     })
     print(f"Tarea '{title}' añadida.\n")
-    go_back_to_menu()
+    input("Presione enter para continuar.")
 
 def show_tasks():
     os.system('cls')
@@ -83,21 +75,36 @@ def show_tasks():
             print(f"{task['title']} - {task['status']} - {task['due_date']} - {task['tag']}")
     else:
         print("No hay tareas registradas.\n")
-    go_back_to_menu()
+    input("Presione enter para continuar.")
 
 def update_task_status():
     os.system('cls')
+    statuses = ["Pendiente", "En progreso", "Completada"]
+    
     title = input("Ingrese el título de la tarea a actualizar: ")
-    new_status = input("Nuevo estado (Pendiente, En progreso, Completada): ")
-    if new_status in ['Pendiente', 'En progreso', 'Completada']:
-        updated = db.update({'status': new_status}, Task.title == title)
-        if updated:
-            print(f"Estado de '{title}' actualizado a {new_status}.\n")
-        else:
-            print("Tarea no encontrada.\n")
+    result = tasks_table.search(Task.title == title)
+    if not result:
+        print("No se ha encontrado una tarea con este título")
+        input("Presione enter para continuar.")
+        return
+
+    while True:
+        os.system('cls')
+        for (i, item) in enumerate(statuses, start=1):
+            print(str(i)+".", item)
+        choice = int(input("Seleccione el nuevo estado: "))
+        if choice in list( range( 1, len(statuses) + 1) ):
+            break
+        os.system('cls')
+        print("Opción inválida.")
+        input("Presione enter para continuar.")
+
+    updated = tasks_table.update({'status': statuses[choice-1]}, Task.title == title)
+    if updated:
+        print(f"Estado de '{title}' actualizado a {statuses[choice-1]}.\n")
     else:
-        print("Estado no valido. Los estados válidos son 'Pendiente', 'En progreso', 'Completada'.\n")
-    go_back_to_menu()
+        print("Ha ocurrido un error.\n")
+    input("Presione enter para continuar.")
 
 def delete_task():
     pattern_out = re.compile(r"^(s|si|sí)$", re.IGNORECASE)
@@ -111,30 +118,34 @@ def delete_task():
                 print(f"{task['title']} - {task['status']} - {task['due_date']} - {task['tag']}")
                 t.append(task['title'])
 
-            choice = input("Ingrese título de tarea a eliminar:")
+            choice = input("Ingrese título de tarea a eliminar: ")
             if (choice in t):
                 erase = input("Eliminar tarea permanentemente? (S/N): ")
                 if pattern_out.match(erase):
                     tasks_table.remove(Task.title == choice)
                     os.system('cls')
                     print('Tarea Eliminada')
-                    go_back_to_menu()
+                    input("Presione enter para continuar.")
+                    return
                 else:
                     task_to_move = tasks_table.get(Task.title == choice)
                     archived_tasks.insert(task_to_move)
                     tasks_table.remove(Task.title == choice)
+                    os.system('cls')
                     print('Tarea guardada en papelera')
-                    go_back_to_menu()
+                    input("Presione enter para continuar.")
+                    return
             else:
                 print("No se ha encontrado la tarea")
                 choice = input("Volver a menú (S/N): ")
                 if pattern_out.match(choice):
                     os.system('cls')
-                    main_menu()
+                    return
         
         else:
             print("No hay tareas registradas.\n")
-            go_back_to_menu()
+            input("Presione enter para continuar.")
+            return
 
 def filter():
     while True:
@@ -299,7 +310,10 @@ def user_decision():
             print("Saliendo del sistema.")
             exit()
         else:
+            os.system('cls')
             print("Opcion no válida. Intente de nuevo.\n")
+            input("Presione enter para continuar.")
+            
 
 if __name__ == '__main__':
     update_overdue_tasks()
