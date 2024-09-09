@@ -4,6 +4,7 @@ from getpass import getpass
 import os
 import re
 from datetime import datetime
+import logging
 
 db = TinyDB('db.json')
 Task = Query()
@@ -11,6 +12,10 @@ User = Query()
 users_table = db.table('users')
 tasks_table = db.table('tasks')
 archived_tasks = db.table('archived_tasks')
+
+logging.basicConfig(filename='app.log', 
+                    level=logging.INFO, 
+                    format='%(asctime)s - %(levelname)s - %(message)s')
 
 def register():
     os.system('cls')
@@ -22,6 +27,7 @@ def register():
 
     # Buscar si el usuario ya existe en la tabla de usuarios
     if users_table.search(User.nombre == username):
+        logging.warning(f"Intento de registro de usuario existente '{username}'.")
         print("El usuario ya existe. Intenta con otro nombre de usuario.")
         input("Presione enter para continuar.")
         return
@@ -29,6 +35,7 @@ def register():
     # Insertar el nuevo usuario en la tabla de usuarios
     users_table.insert({'nombre': username, 'password': md5_password})
     os.system('cls')
+    logging.info(f"User '{username}' registrado exitosamente.")
     print("Usuario registrado exitosamente!")
     input("Presione enter para continuar.")
 
@@ -41,11 +48,13 @@ def authenticate():
     md5_password = hashlib.md5(password.encode()).hexdigest()
     result  = users_table.search((User.nombre == user) & (User.password == md5_password))
     if result:
+        logging.info(f"Intento de login exitoso para el user '{user}'.")
         username = user
         print("Acceso concedido\n")
         input("Presione enter para continuar.")
     else:
         print("Acceso denegado")
+        logging.warning(f"Intento de login fallido para el user '{user}'.")
         exit()
 
 def add_task():
@@ -74,6 +83,7 @@ def add_task():
         'tag': etiquetas[int(tag)],
         'status': 'Pendiente'
     })
+    logging.info(f"Tarea '{title}' creada por user '{username}' con fecha de vencimiento '{due_date}'.")
     print(f"Tarea '{title}' añadida.\n")
     input("Presione enter para continuar.")
 
@@ -85,6 +95,7 @@ def show_tasks():
             print(f"{task['title']} - {task['status']} - {task['due_date']} - {task['tag']}")
     else:
         print("No hay tareas registradas.\n")
+    logging.info(f"User '{username}' ha visto sus {len(tasks)} tareas.")
     input("Presione enter para continuar.")
 
 def update_task_status():
@@ -96,6 +107,7 @@ def update_task_status():
         for task in tasks:
             print(f"{task['title']} - {task['status']} - {task['due_date']} - {task['tag']}")
     else:
+        logging.info(f"User '{username}' no tiene tareas en las que actualizar estado.")
         print("No hay tareas registradas.\n")
         input("Presione enter para continuar.")
         return
@@ -104,6 +116,7 @@ def update_task_status():
     result = tasks_table.search( (Task.title == title) & (Task.username == username) )
     if not result:
         os.system('cls')
+        logging.warning(f"User '{username}' intento actualizar el estado de la tarea no existente '{title}'.")
         print("No se ha encontrado una tarea con este título")
         input("Presione enter para continuar.")
         return
@@ -124,6 +137,7 @@ def update_task_status():
 
     updated = tasks_table.update({'status': statuses[choice-1]}, (Task.title == title) & (Task.username == username))
     if updated:
+        logging.info(f"User '{username}' actualizo tarea '{title}' al estado '{statuses[choice-1]}'.")
         print(f"Estado de '{title}' actualizado a {statuses[choice-1]}.\n")
     else:
         print("Ha ocurrido un error.\n")
@@ -144,9 +158,11 @@ def delete_task():
             choice = input("Ingrese título de tarea a eliminar: ")
             if (choice in t):
                 erase = input("Eliminar tarea permanentemente? (S/N): ")
+
                 if pattern_out.match(erase):
                     tasks_table.remove( (Task.title == choice) & (Task.username == username) )
                     os.system('cls')
+                    logging.info(f"User '{username}' elimino permanentemente la tarea '{choice}'.")
                     print('Tarea Eliminada')
                     input("Presione enter para continuar.")
                     return
@@ -154,11 +170,13 @@ def delete_task():
                     task_to_move = tasks_table.get( (Task.title == choice) & (Task.username == username) )
                     archived_tasks.insert(task_to_move)
                     tasks_table.remove( (Task.title == choice) & (Task.username == username) )
+                    logging.info(f"User '{username}' archivo la tarea '{choice}'.")
                     os.system('cls')
                     print('Tarea guardada en papelera')
                     input("Presione enter para continuar.")
                     return
             else:
+                logging.warning(f"User '{username}' intento eliminar la tarea tarea no existente '{choice}'.")
                 print("No se ha encontrado la tarea")
                 choice = input("Volver a menú (S/N): ")
                 if pattern_out.match(choice):
@@ -166,6 +184,7 @@ def delete_task():
                     return
         
         else:
+            logging.info(f"User '{username}' no tiene tareas para eliminar.")
             print("No hay tareas registradas.\n")
             input("Presione enter para continuar.")
             return
@@ -220,10 +239,12 @@ def filter_by_date():
 
     os.system('cls')
     if result:
+        logging.info(f"User '{username}' encontro {len(result)} tareas en el rango de fechas '{from_date}' a '{to_date}'.")
         print("Tareas encontradas:")
         for task in sorted_tasks:
             print(f"{task['title']} - {task['status']} - {task['due_date']} - {task['tag']}")
     else:
+        logging.info(f"User '{username}' no encontro tareas en el rango de fechas '{from_date}' a '{to_date}'.")
         print("No se encontraron tareas dentro de este rango de fechas.")
     input("Presione enter para continuar.")
 
@@ -252,10 +273,12 @@ def filter_by_tag():
 
     os.system('cls')
     if result:
+        logging.info(f"User '{username}' encontro {len(result)} tareas con etiqueta '{etiquetas[choice-1]}'.")
         print("Tareas encontradas:")
         for task in sorted_tasks:
             print(f"{task['title']} - {task['status']} - {task['due_date']} - {task['tag']}")
     else:
+        logging.info(f"User '{username}' no encontro tareas con etiqueta '{etiquetas[choice-1]}'.")
         print("No se encontraron tareas con esa etiqueta.")
     input("Presione enter para continuar.")
 
@@ -282,10 +305,12 @@ def filter_by_state():
 
     os.system('cls')
     if result:
+        logging.info(f"User '{username}' encontro {len(result)} tareas con estado '{statuses[choice-1]}'.")
         print("Tareas encontradas:")
         for task in sorted_tasks:
             print(f"{task['title']} - {task['status']} - {task['due_date']} - {task['tag']}")
     else:
+        logging.info(f"User '{username}' no encontro tareas con estado '{statuses[choice-1]}'.")
         print("No se encontraron tareas con ese estado.")
     input("Presione enter para continuar.")
 
@@ -298,22 +323,25 @@ def filter_by_title():
 
     os.system('cls')
     if result:
+        logging.info(f"User '{username}' encontro {len(result)} tareas que incluyen '{title}' en su titulo.")
         print("Tareas encontradas:")
         for task in sorted_tasks:
             print(f"{task['title']} - {task['status']} - {task['due_date']} - {task['tag']}")
     else:
+        logging.info(f"User '{username}' no encontro tareas que incluyan '{title}' en su titulo.")
         print("No se encontraron tareas con ese título.")
     input("Presione enter para continuar.")
 
 def update_overdue_tasks():
     today = datetime.now()
 
-    tasks = tasks_table.all()
+    tasks = tasks_table.search( (Task.status != "Completada") & (Task.status != "Atrasada") )
 
     for task in tasks:
         due_date = datetime.strptime(task['due_date'], "%Y-%m-%d")
         if due_date < today:
             tasks_table.update({'status': 'Atrasada'}, doc_ids=[task.doc_id])
+            logging.info(f"Tarea '{task['title']}' de user '{task['username']}' marcada como atrasada.")
 
 def main_menu():
     while True:     
@@ -337,6 +365,7 @@ def main_menu():
         elif choice == '5':
             delete_task()
         elif choice == '6':
+            logging.info(f"User '{username}' ha salido del sistema.")
             print("Saliendo del sistema.")
             exit()
         else:
