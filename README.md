@@ -20,3 +20,4 @@ python .\task_manager.py
 Para colaborar en el proyecto, puedes clonarlo en tu máquina local y enviar pull requests. Estos serán revisados y, si son adecuados, aceptados por el creador del repositorio y otros colaboradores.
 
 ## Licencia
+MIT :D
